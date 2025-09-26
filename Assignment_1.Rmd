@@ -1,0 +1,436 @@
+---
+title: "Bioinformatics Analysis and Visualisation of Medical Genomics Data- Assignment"
+author: "Emmanouela Perisynaki"
+date: "2025-09-25"
+output: html_document
+---
+
+
+## Task 1- Literature
+
+# Question 2
+
+a. What is the medically relevant insight from the article?
+
+This article shows that long noncoding RNAs (lncRNAs), which constitute the majority of the human transcriptome, can influence key cellular processes. The authors used a strategy of systematic knockdown of 285 lncRNAs in human dermal fibroblasts to measure effects on cell proliferation and morphology.They found that the knockdown of approximately one third of these lncRNAs had impactful effects on the cellular and molecular phenotype of cells. These results suggest that lncRNAs can be potentially used as biomarkers and therapeutic targets in diseases such as cancer, fibrotic conditions, and neurological disorders.
+
+
+b. Which genomics technology/ technologies were used?
+
+The authors used a wide range of genomic technologies including:
+-Antisense oligonucleotide (ASO) knockdown to silence lncRNAs, 
+-siRNA knockdown to validate ASO results,
+-RNA-sequencing of fractionated RNA to find the subcellular localization for targeted lncRNAs,
+-Capped Analysis of Gene Expression (CAGE) to study molecular pathways associated with each lncRNA,
+-Chromosome conformation capture (Hi-C) to study the mechanism of cis regulation by lncRNAs.
+The authors also used a variety of non-genomic technologies, such as MKI67 staining, imaging, growth and wound healing assays.
+
+
+# Question 3
+
+a. List and explain at least three questions/ hypotheses you can think of that
+extend the analysis presented in the paper.
+
+The first question would be whether the same lncRNA knockdowns exhibit the same effects in different cell types, so a good approach would be to test multiple cell types for the same lncRNA knockdowns, especially ZNF213-AS1 and RP11-398K22.12, which were extensively studied in the paper. The second question that arises would be whether these knockdowns have the same effect in the context of a grwoing tissue and not only at the cell-culture level. So I would suggest potentially using organoids to investigate the effects of these lnRNA knockdowns.The third question would be whether the effects of ZNF213-AS1 and RP11-398K22.12 knockdown are the same if the cell culture conditions change, so I would suggest testing their effects when implementing stress or disease-relevant conditions, such as hypoxia.
+
+
+b. [Optional] Devise a computational analysis strategy for (some of) the listed
+questions under 3a.
+
+
+
+## Task 4 - R basic operations
+
+
+```{r, echo=TRUE, message=TRUE, warning=TRUE}
+
+## 1) What is the square root of 10?
+
+x <- sqrt(10)
+print(x)
+
+## 2) What is the logarithm of 32 to the base 2?
+
+x <- log(32, base = 2)
+print(x)
+
+## 3) What is the sum of the numbers from 1 to 1000?
+
+x <- sum(1:1000)
+print(x)
+
+## 4) What is the sum of all even numbers from 2 to 1000?
+
+x <- sum(seq(2, 1000, by = 2))
+print(x)
+
+## 5) How many pairwise comparisons are there for 100 genes?
+
+x <- choose(100, 2)
+print(x)
+
+## 6) And how many ways to arrange 100 genes in triples?
+
+x <- choose(100, 3)
+print(x)
+
+```
+
+
+## Task 5 - Using R example datasets
+
+```{r, echo=TRUE, message=TRUE, warning=TRUE}
+
+## 1) Use the R internal CO2 dataset (“data(CO2)”)
+
+data(CO2)
+print(CO2)
+
+## 2) Describe briefly the content of the CO2 dataset using the help function.
+
+help(CO2)
+
+## 3) What is the average and median CO2 uptake of the plants from Quebec and Mississippi?
+
+mean_co2 <- aggregate(uptake ~ Type, data = CO2, FUN = mean)
+median_co2 <- aggregate(uptake ~ Type, data = CO2, FUN = median)
+
+print(mean_co2)
+print(median_co2)
+
+
+```
+
+## Task 6 - R Functions
+
+```{r, echo=TRUE, message=TRUE, warning=TRUE}
+
+## 1) Write a function that calculates the ratio of the mean and the median of a given vector.
+
+mean_median_ratio <- function(x, na.rm = TRUE) {
+  mea <- mean(x, na.rm = na.rm)
+  med <- median(x, na.rm = na.rm)
+  ratio <- mea / med
+  return(ratio)
+}
+
+
+x <- c(1,2,3,4)
+
+mean_median_ratio(x)
+
+## 2) Write a function that ignores the lowest and the highest value from a given vector and calculate the mean.
+
+trimmed_mean_minmax <- function(x, na.rm = TRUE) {
+  min_val <- min(x)
+  max_val <- max(x)
+  
+  x_trimmed <- x
+  min_idx <- which(x_trimmed == min_val)[1]
+  x_trimmed <- x_trimmed[-min_idx]
+  
+  max_idx <- which(x_trimmed == max_val)[1]
+  x_trimmed <- x_trimmed[-max_idx]
+  
+  mean_val <- mean(x_trimmed)
+  
+  return(mean_val)
+}
+
+
+trimmed_mean_minmax(x)
+
+## 3) Write a short (max. 300 characters, no spaces) explanation of why, how, and when not to use pipes.
+
+#Pipes are useful for short linear sequence of operations, which are useful for cleaning up the code. They take an object and pass it as the first argument to a function using %>% , creating a left-to-right chain of operations and improving readability. They should be avoided when the pipes are longer than ten steps, have multiple inputs or outputs, or when expressing complex relationships.
+
+## 4) Write a short explanation (max. 300 characters, no spaces) of why they could be useful in your work.
+
+# Apply-family functions allow efficient operations on matrices, lists, and data frames, so by using them in my work, I can achieve quick filtering, normalization, and aggregation of gene expression and improve reproducibility.
+
+
+```
+
+## Task 7 - Basic visualization with R
+
+```{r, echo=TRUE, message=TRUE, warning=TRUE}
+
+## 1a) Compare the distributions of the body heights of the two species from the 'magic_guys.csv' dataset graphically using the basic 'hist' function as well as ‘ggplot’ and ‘geom_histogram’ functions from the ggplot2 package. Optimize the plots for example by trying several different 'breaks'. Note that ggplot2-based functions give you many more options for changing the visualization parameters, try some of them.
+
+
+# Loading the dataset and understanding its structure 
+
+library(ggplot2)
+library(readr)
+
+magic_guys <- read_csv("~/Downloads/magic_guys.csv")
+print(magic_guys)
+
+unique(magic_guys$species)
+colnames(magic_guys)
+head(magic_guys)
+
+jedi_lengths <- magic_guys$length[magic_guys$species == "jedi"]
+sith_lengths <- magic_guys$length[magic_guys$species == "sith"]
+
+# Comparing distributions using 'hist' with breaks=10
+
+par(mfrow = c(1, 2))  
+hist(jedi_lengths, breaks = 10, col = "blue", main = "Jedi Heights", xlab = "Height")
+hist(sith_lengths, breaks = 10, col = "red", main = "Sith Heights", xlab = "Height")
+
+# Comparing distributions using 'hist' with breaks=20
+
+par(mfrow = c(1, 2))  
+hist(jedi_lengths, breaks = 20, col = "blue", main = "Jedi Heights", xlab = "Height")
+hist(sith_lengths, breaks = 20, col = "red", main = "Sith Heights", xlab = "Height")
+
+
+
+# Comparing distributions using ‘ggplot’ and ‘geom_histogram’ with bins=20
+
+ggplot(magic_guys, aes(x = length, fill = species)) +
+  geom_histogram(alpha = 0.6, position = "identity", bins = 20, color = "black") +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Distribution of body heights", x = "Height", y = "Count") +
+  theme(text = element_text(size = 12))
+
+# Comparing distributions using ‘ggplot’ and ‘geom_histogram’ with bins=30
+
+ggplot(magic_guys, aes(x = length, fill = species)) +
+  geom_histogram(alpha = 0.6, position = "identity", bins = 30, color = "black") +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Distribution of body heights", x = "Height", y = "Count") +
+  theme(text = element_text(size = 12))
+
+
+## 1b) Do the same comparison as in a. but with boxplots. If you want to use the ggplot2-package, use the functions ‘ggplot’ and ‘geom_boxplot’.
+
+ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Comparison of Body Heights", x = "Species", y = "Height") 
+
+## 1c) Save the plots with the ‘png’, ‘pdf’, and ‘svg’ formats. In which situation would you use which file format?
+
+# Saving png
+
+png("body_heights.png")
+
+ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Comparison of Body Heights", x = "Species", y = "Height") 
+
+dev.off()
+
+# Saving pdf
+
+pdf("body_heights.png")
+
+ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Comparison of Body Heights", x = "Species", y = "Height") 
+
+dev.off()
+
+# Saving svg
+
+svg("body_heights.png")
+
+ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(title = "Comparison of Body Heights", x = "Species", y = "Height") 
+
+dev.off()
+
+# Png is best for presentations, pdf is better for more hiqh-quality figures, for example if we want to have them printed, and the svg is best for plots we want to edit in Illustrator or other softwares.
+
+
+## 2a) Load the gene expression data matrix from the ‘microarray_data.tab’ dataset provided in the shared folder, it is a big tabular separated matrix. How big is the matrix in terms of rows and columns?
+
+microarray_data <- read.table("~/Downloads/microarray_data.tab", 
+  header = TRUE, 
+  stringsAsFactors = FALSE,
+  fill = TRUE)
+                              
+dim(microarray_data)   
+
+# The matrix has 551 rows and 1000 columns
+
+
+## 2b) Count the missing values per gene and visualize this result.
+
+missing_per_gene <- rowSums(is.na(microarray_data))
+
+head(missing_per_gene)
+
+hist(missing_per_gene, breaks = 50, col = "blue",
+     main = "Missing values per gene",
+     xlab = "Number of missing values")
+
+
+## 2c) Find the genes for which there are more than X% (X=10%, 20%, 50%) missing values.
+
+num_samples <- ncol(microarray_data)
+
+thresholds <- c(0.1, 0.2, 0.5)  
+
+# Find genes exceeding each percentage
+genes_missing_10 <- rownames(microarray_data)[missing_per_gene / num_samples > thresholds[1]]
+genes_missing_20 <- rownames(microarray_data)[missing_per_gene / num_samples > thresholds[2]]
+genes_missing_50 <- rownames(microarray_data)[missing_per_gene / num_samples > thresholds[3]]
+
+
+# View genes with >10% missing values
+print(genes_missing_10)
+
+# View genes with >20% missing values
+print(genes_missing_20)
+
+# View genes with >50% missing values
+print(genes_missing_50)
+
+
+## 2d) Replace the missing values by the average expression value for the particular gene. (Note: Imputing data has to be used with caution!)
+
+# Make a copy of the original data to preserve the original form
+microarray_imputed <- microarray_data
+
+# Replace NAs with thegene mean value
+microarray_imputed[] <- t(apply(microarray_imputed, 1, function(x) {
+  x[is.na(x)] <- mean(x, na.rm = TRUE)
+  return(x)
+}))
+
+# Checking that all missing values are replaced 
+
+sum(is.na(microarray_imputed)) 
+
+
+
+## 3) Visualize the data in the CO2 dataset in a way that gives you a deeper understanding of the data. What do you see?
+
+head(CO2)
+
+
+plot(CO2$conc, CO2$uptake,
+     pch = 16,
+     xlab = "CO2 concentration",
+     ylab = "CO2 uptake",
+     main = "CO2 uptake vs concentration")
+
+# I can see that the C02 uptake is increasing as concentration increases
+
+
+```
+
+
+## Task 8 
+
+```{r, echo=TRUE, message=TRUE, warning=TRUE}
+
+## 1a) 1. Install the Tidybiology package, which includes the data ‘chromosome’ and ‘proteins’ devtools::install_github("hirscheylab/tidybiology"). Extract summary statistics (mean, median and maximum) for the following variables from the ‘chromosome’ data: variations, protein coding genes, and miRNAs. Utilize the tidyverse functions to make this as simply as possible.
+
+
+library(tidybiology)
+library(tidyverse)
+
+data("chromosome")
+colnames(chromosome)
+
+
+chromosome %>%
+  summarise(
+    mean_variations = mean(variations, na.rm = TRUE),
+    median_variations = median(variations, na.rm = TRUE),
+    max_variations = max(variations, na.rm = TRUE),
+    
+    mean_protein_coding_genes = mean(protein_codinggenes, na.rm = TRUE),
+    median_protein_coding_genes = median(protein_codinggenes, na.rm = TRUE),
+    max_protein_coding_genes = max(protein_codinggenes, na.rm = TRUE),
+    
+    mean_miRNAs = mean(mi_rna, na.rm = TRUE),
+    median_miRNAs = median(mi_rna, na.rm = TRUE),
+    max_miRNAs = max(mi_rna, na.rm = TRUE)
+  )
+
+
+## 1b) How does the chromosome size distribute? Plot a graph that helps to visualize this by using ggplot2 package functions.
+
+ggplot(chromosome, aes(x = basepairs)) +
+  geom_histogram(bins = 20, fill = "blue", color = "black") +
+  labs(title = "Distribution of chromosome size",
+       x = "Chromosome size (base pairs)",
+       y = "Number of chromosomes") +
+  theme_minimal()
+
+
+## 1c) Does the number of protein coding genes or miRNAs correlate with the length of the chromosome? Make two separate plots to visualize these relationships.
+
+# Comparing number of protein coding genes to the length of the chromosome: the number of protein coding genes increases as the length of the chromosome is increasing
+
+ggplot(chromosome, aes(x = basepairs, y = protein_codinggenes)) +
+  geom_point(color = "blue", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Protein coding genes vs Chromosome length",
+       x = "Chromosome length (base pairs)",
+       y = "Number of protein coding genes") +
+  theme_minimal()
+
+# Comparing number of miRNAs to the length of the chromosome: the miRNAs increases as the length of the chromosome is increasing
+
+ggplot(chromosome, aes(x = basepairs, y = mi_rna)) +
+  geom_point(color = "blue", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "miRNAs vs Chromosome length",
+       x = "Chromosome size (base pairs)",
+       y = "Number of miRNAs") +
+  theme_minimal()
+
+## 1d) Calculate the same summary statistics for the ‘proteins’ data variables length and mass. Create a meaningful visualization of the relationship between these two variables by utilizing the ggplot2 package functions. Play with the colors, theme- and other visualization parameters to create a plot that pleases you.
+
+data("proteins")
+colnames(proteins)
+ 
+
+proteins %>%
+  summarise(
+    mean_length = mean(length, na.rm = TRUE),
+    median_length = median(length, na.rm = TRUE),
+    max_length = max(length, na.rm = TRUE),
+    
+    mean_mass = mean(mass, na.rm = TRUE),
+    median_mass = median(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE)
+  )
+
+
+
+# First plot
+
+ggplot(proteins, aes(x = length, y = mass)) +
+  geom_point(color = "steelblue", size = 3, alpha = 0.7) +  # single color
+  labs(title = "Protein Length vs Mass",
+       x = "Length (amino acids)",
+       y = "Mass (kDa)") +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+# Second plot making the blue darker and the title in bold letters
+
+ggplot(proteins, aes(x = length, y = mass)) +
+  geom_point(color = "blue", size = 3, alpha = 0.7) +  # single color
+  labs(title = "Protein length vs mass",
+       x = "Length (amino acids)",
+       y = "Mass (kDa)") +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+
+```
+
