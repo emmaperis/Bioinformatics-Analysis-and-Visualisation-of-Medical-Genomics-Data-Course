@@ -226,7 +226,7 @@ dev.off()
 
 # Saving pdf
 
-pdf("body_heights.png")
+pdf("body_heights.pdf")
 
 ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
   geom_boxplot(alpha = 0.7) +
@@ -237,7 +237,7 @@ dev.off()
 
 # Saving svg
 
-svg("body_heights.png")
+svg("body_heights.svg")
 
 ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
   geom_boxplot(alpha = 0.7) +
